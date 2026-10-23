@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Oracle Card Builder</title>
+<!-- link preview -->
+<meta name="description" content="Plan your own oracle deck one step at a time, then build it as an interactive deck with AI. From the Alchemist's AI Toolkit.">
+<link rel="canonical" href="https://sunnysink.github.io/alchemists-ai-toolkit/oracle-card-builder/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Soul-Forged Founders">
+<meta property="og:title" content="Oracle Card Builder | Plan Your Own Oracle Deck">
+<meta property="og:description" content="Plan your own oracle deck one step at a time, then build it as an interactive deck with AI. From the Alchemist's AI Toolkit.">
+<meta property="og:url" content="https://sunnysink.github.io/alchemists-ai-toolkit/oracle-card-builder/">
+<meta property="og:image" content="https://sunnysink.github.io/alchemists-ai-toolkit/oracle-card-builder/preview.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Oracle Card Builder | Plan Your Own Oracle Deck">
+<meta name="twitter:description" content="Plan your own oracle deck one step at a time, then build it as an interactive deck with AI. From the Alchemist's AI Toolkit.">
+<meta name="twitter:image" content="https://sunnysink.github.io/alchemists-ai-toolkit/oracle-card-builder/preview.jpg">
+<!-- /link preview -->
+<style>html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one step at a time. Progress strip of little cards pinned on top, the step's fields on the left, a holographic card preview on the right (stacks above on phones). The Unfolding palette, light only by design, played cute: round, soft, sparkly. */
+:root {
+  color-scheme: light;
+  --bg: #FAF8F5; --bg2: #F3F0EB; --mist: #E9EEF2;
+  --ink: #2A2630; --ink-dim: #5C5768; --ink-faint: #8D889A;
+  --peri: #8183A6; --peri-lt: #A8AAC8; --peri-dk: #63657F; --peri-wash: rgba(129,131,166,0.10);
+  --blush: #D9B6A3; --blush-wash: rgba(217,182,163,0.22);
+  --terra: #D97762; --terra-lt: #E8967F;
+  --sage: #90AA9F; --sage-lt: #B3CCC3; --sage-dk: #5E8174;
+  --gold: #D4C08A;
+  --on-terra: #FFFBF7;
+  --surface: rgba(255,253,250,0.80); --surface-2: rgba(233,238,242,0.55);
+  --line: rgba(129,131,166,0.20); --line-2: rgba(129,131,166,0.12);
+  --glow: 0 10px 40px rgba(129,131,166,0.16); --glow-blush: 0 10px 34px rgba(217,182,163,0.35);
+  --serif: 'Cormorant Garamond', 'Hoefler Text', Georgia, serif;
+  --sans: 'Montserrat', system-ui, -apple-system, sans-serif;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+.scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background: radial-gradient(ellipse 80% 60% at 85% 0%, rgba(168,170,200,.35), transparent 60%),
+              radial-gradient(ellipse 70% 60% at 0% 100%, rgba(217,182,163,.35), transparent 60%),
+              radial-gradient(ellipse 50% 40% at 30% 30%, rgba(179,204,195,.25), transparent 70%), var(--bg); }
+.twinkle { position: absolute; color: var(--peri-lt); font-size: 14px; animation: tw 5s ease-in-out infinite; opacity: .0; }
+@keyframes tw { 0%,100% { opacity: 0; transform: scale(.6) } 50% { opacity: .9; transform: scale(1) } }
+
+/* Progress strip */
+.strip { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: rgba(250,248,245,0.86);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--line-2);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px; }
+.strip-inner { max-width: 1100px; margin: 0 auto; display: grid; gap: 8px; }
+.strip-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.brand { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1.35em; color: var(--peri-dk); display: flex; align-items: center; gap: 8px; }
+.brand i { font-style: normal; color: var(--terra); font-size: .8em; }
+.strip-count { font-size: .68em; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); white-space: nowrap; }
+.steps { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; list-style: none; margin: 0; padding: 0; }
+.steps button { width: 100%; background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink-faint); font-family: var(--sans);
+  font-size: .62em; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; display: grid; gap: 5px; text-align: left; }
+.steps button:disabled { cursor: default; opacity: .6; }
+.steps .bar { height: 6px; border-radius: 6px; background: var(--line-2); transition: background .6s var(--ease); }
+.steps li.done .bar { background: linear-gradient(90deg, var(--peri-lt), var(--blush)); }
+.steps li.current .bar { background: linear-gradient(90deg, var(--terra-lt), var(--blush), var(--peri-lt)); background-size: 200% 100%; animation: flow 4s ease-in-out infinite alternate; }
+@keyframes flow { from { background-position: 0% 0 } to { background-position: 100% 0 } }
+.steps li.current button { color: var(--terra); }
+.steps li.done button { color: var(--peri-dk); }
+.steps .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.steps button:focus-visible { outline: 2px solid var(--peri); outline-offset: 3px; border-radius: 6px; }
+
+.wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 30px 70px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 32px; align-items: start; }
+.aside { position: sticky; top: 104px; display: grid; gap: 12px; justify-items: center; }
+
+.step-head { display: grid; gap: 4px; margin-bottom: 20px; }
+.kicker { font-size: .7em; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--terra); }
+h1 { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: clamp(2.2em, 4.6vw, 3.1em); line-height: 1.05; letter-spacing: -0.02em; margin: 0; color: var(--ink); text-wrap: balance; }
+.lede { color: var(--ink-dim); margin: 4px 0 0; }
+
+.card { background: var(--surface); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--line);
+  border-radius: 24px; padding: 24px; box-shadow: var(--glow); }
+.card.soft { background: linear-gradient(135deg, rgba(233,238,242,.75), rgba(217,182,163,.18)); }
+.stack { display: grid; gap: 18px; }
+.gap-top { margin-top: 16px; }
+h3 { font-family: var(--serif); font-weight: 600; font-size: 1.35em; margin: 0; line-height: 1.2; }
+
+.field { display: grid; gap: 6px; }
+.field label, .lab { font-size: .7em; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--peri-dk); }
+.hint { font-size: .84em; color: var(--ink-faint); margin: 0; }
+input[type=text], input[type=number], textarea, select { width: 100%; font: inherit; font-size: .95em; color: var(--ink); background: rgba(255,253,250,.9);
+  border: 1px solid var(--line); border-radius: 14px; padding: 11px 14px; transition: border-color .4s var(--ease), box-shadow .4s var(--ease); }
+textarea { min-height: 84px; resize: vertical; line-height: 1.6; }
+input::placeholder, textarea::placeholder { color: var(--ink-faint); opacity: .75; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--peri-lt); box-shadow: 0 0 0 4px var(--peri-wash), 0 6px 24px rgba(129,131,166,.15); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice { position: relative; }
+.choice input { position: absolute; opacity: 0; inset: 0; cursor: pointer; margin: 0; }
+.choice span { display: inline-block; padding: 8px 16px; border-radius: 30px; border: 1px solid var(--line); background: rgba(255,253,250,.8); color: var(--ink-dim); font-size: .85em; font-weight: 500; transition: all .4s var(--ease); }
+.choice input:checked + span { background: var(--blush-wash); border-color: var(--terra-lt); color: var(--ink); }
+.choice input:focus-visible + span { box-shadow: 0 0 0 4px var(--peri-wash); }
+
+/* Path cards */
+.paths { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.path { position: relative; }
+.path input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 1; }
+.path .pc { display: grid; gap: 4px; height: 100%; padding: 16px 18px; border-radius: 18px; border: 1px solid var(--line); background: rgba(255,253,250,.8); transition: all .5s var(--ease); }
+.path .pc b { font-family: var(--serif); font-size: 1.3em; font-weight: 600; line-height: 1.15; }
+.path .pc span { font-size: .84em; color: var(--ink-dim); }
+.path .pc em { font-style: normal; font-size: 1.3em; }
+.path input:checked + .pc { border-color: var(--terra-lt); background: linear-gradient(135deg, rgba(232,150,127,.12), rgba(168,170,200,.14)); box-shadow: var(--glow-blush); }
+.path input:focus-visible + .pc { box-shadow: 0 0 0 4px var(--peri-wash); }
+
+button.btn { font-family: var(--sans); font-weight: 600; font-size: .84em; letter-spacing: .04em; padding: 11px 22px; border-radius: 30px; border: none;
+  background: linear-gradient(135deg, var(--terra-lt), var(--terra)); color: var(--on-terra); cursor: pointer; transition: transform .4s var(--ease), box-shadow .4s var(--ease); box-shadow: 0 6px 18px rgba(217,119,98,.25); }
+button.btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(217,119,98,.32); }
+button.btn.peri { background: linear-gradient(135deg, var(--peri-lt), var(--peri)); box-shadow: 0 6px 18px rgba(129,131,166,.28); }
+button.btn.ghost { background: rgba(255,253,250,.8); border: 1px solid var(--line); color: var(--ink-dim); box-shadow: none; }
+button.btn.ghost:hover { border-color: var(--peri-lt); color: var(--peri-dk); }
+button.btn.sm { padding: 7px 15px; font-size: .76em; }
+button.btn:focus-visible { outline: 2px solid var(--peri); outline-offset: 3px; }
+
+.nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+.nav .right { display: flex; gap: 10px; flex-wrap: wrap; margin-left: auto; align-items: center; }
+
+/* Tabs for ways in */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; background: var(--surface-2); padding: 5px; border-radius: 30px; width: fit-content; max-width: 100%; }
+.tabs button { border: 0; background: none; font: inherit; font-size: .8em; font-weight: 600; color: var(--ink-dim); padding: 8px 16px; border-radius: 30px; cursor: pointer; transition: all .4s var(--ease); }
+.tabs button[aria-selected=true] { background: #FFFDFA; color: var(--terra); box-shadow: 0 4px 14px rgba(129,131,166,.18); }
+.tabs button:focus-visible { outline: 2px solid var(--peri); outline-offset: 2px; }
+
+/* Prompt boxes */
+.prompt { display: grid; gap: 8px; background: rgba(233,238,242,.6); border: 1px dashed var(--peri-lt); border-radius: 16px; padding: 14px; }
+.prompt-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.prompt pre { margin: 0; font-family: var(--sans); font-size: .8em; line-height: 1.65; color: var(--ink-dim); white-space: pre-wrap; word-break: break-word; max-height: 240px; overflow: auto; }
+.copied { font-size: .7em; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--sage-dk); }
+.flash { font-size: .86em; color: var(--sage-dk); margin: 0; font-weight: 500; }
+.flash.warn { color: var(--terra); }
+.numbered { margin: 0; padding-left: 20px; color: var(--ink-dim); font-size: .9em; display: grid; gap: 4px; }
+
+/* Card list rows */
+.cards-list { display: grid; gap: 8px; }
+.card-row { display: grid; grid-template-columns: 26px minmax(0, 1.2fr) minmax(0, .8fr) 36px; gap: 8px; align-items: center; }
+.card-row .num { font-size: .78em; color: var(--ink-faint); text-align: right; font-variant-numeric: tabular-nums; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,253,250,.9); color: var(--ink-faint); cursor: pointer; font-size: 1.05em; line-height: 1; transition: all .4s var(--ease); }
+.icon-btn:hover { border-color: var(--terra-lt); color: var(--terra); }
+.icon-btn:focus-visible { outline: 2px solid var(--peri); outline-offset: 2px; }
+.count-pill { font-size: .72em; font-weight: 600; color: var(--peri-dk); background: var(--peri-wash); border-radius: 30px; padding: 4px 12px; font-variant-numeric: tabular-nums; }
+
+.picker { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.picker select { flex: 1 1 200px; width: auto; }
+.dots { display: flex; flex-wrap: wrap; gap: 6px; }
+.dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--line); transition: background .5s var(--ease); }
+.dots span.full { background: var(--blush); }
+.dots span.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--terra-lt); }
+
+.toggle { display: flex; align-items: center; gap: 10px; font-size: .88em; color: var(--ink-dim); cursor: pointer; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--terra); }
+
+/* The card preview: holographic foil */
+.oracle-wrap { perspective: 1000px; }
+.oracle { width: 230px; max-width: 100%; aspect-ratio: 2 / 3; border-radius: 18px; position: relative; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; padding: 14px; text-align: center;
+  background: linear-gradient(160deg, #FFFDFA 0%, #F2EEF6 50%, #F7ECE6 100%); border: 1px solid rgba(212,192,138,.6);
+  box-shadow: 0 24px 60px rgba(99,101,127,.22), 0 4px 14px rgba(217,182,163,.3); animation: bob 6s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0) rotate(-1deg) } 50% { transform: translateY(-6px) rotate(1deg) } }
+.oracle::before { content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; opacity: .7;
+  background: linear-gradient(115deg, transparent 20%, rgba(168,170,200,.7) 35%, rgba(232,150,127,.6) 45%, rgba(179,204,195,.7) 55%, rgba(212,192,138,.6) 65%, transparent 80%);
+  background-size: 250% 250%; animation: foil 7s ease-in-out infinite alternate; }
+@keyframes foil { from { background-position: 0% 0% } to { background-position: 100% 100% } }
+.oracle::after { content: ''; position: absolute; inset: 7px; border: 1px solid rgba(212,192,138,.55); border-radius: 13px; pointer-events: none; }
+.o-deck { font-size: .52em; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--peri-dk); padding-top: 6px; }
+.o-art { margin: 10px 6px; border-radius: 12px; display: grid; place-items: center; padding: 12px; overflow: hidden; position: relative;
+  background: radial-gradient(circle at 50% 38%, rgba(255,253,250,.95) 0 18%, transparent 19%), radial-gradient(circle at 50% 40%, rgba(232,150,127,.35), rgba(168,170,200,.35) 55%, rgba(179,204,195,.35)); }
+.o-art p { margin: 0; font-family: var(--serif); font-style: italic; font-size: .92em; color: var(--ink-dim); line-height: 1.3; position: relative; }
+.o-name { font-family: var(--serif); font-weight: 600; font-size: 1.45em; line-height: 1.05; color: var(--ink); text-wrap: balance; }
+.o-key { font-size: .54em; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--terra); padding: 4px 0 6px; }
+.oracle.back { grid-template-rows: 1fr; place-items: center; background: linear-gradient(160deg, #8183A6, #A8AAC8 50%, #D9B6A3); }
+.oracle.back .sigil { width: 72%; aspect-ratio: 1; border-radius: 50%; border: 1px solid rgba(255,253,250,.75); display: grid; place-items: center; box-shadow: inset 0 0 30px rgba(255,253,250,.3); }
+.oracle.back .sigil span { font-family: var(--serif); font-style: italic; font-size: 1.05em; color: #FFFDFA; padding: 12px; line-height: 1.25; }
+.aside-cap { font-size: .64em; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-faint); }
+
+.example-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px dashed var(--blush); background: rgba(255,253,250,.6);
+  border-radius: 18px; padding: 10px 16px; margin-bottom: 16px; font-size: .86em; color: var(--ink-dim); }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.stat { background: rgba(255,253,250,.85); border: 1px solid var(--line-2); border-radius: 16px; padding: 12px 14px; display: grid; }
+.stat b { font-family: var(--serif); font-size: 2em; font-weight: 600; color: var(--peri-dk); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: .64em; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
+.gaps { margin: 4px 0 0; padding-left: 18px; color: var(--ink-dim); font-size: .9em; }
+.reset { background: none; border: 0; color: var(--ink-faint); font: inherit; font-size: .72em; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; padding: 4px; }
+.reset:hover { color: var(--terra); }
+.confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .84em; color: var(--ink-dim); }
+
+.spark { position: fixed; pointer-events: none; z-index: 99; color: var(--terra-lt); font-size: 14px; animation: burst .9s var(--ease) forwards; }
+@keyframes burst { from { opacity: 1; transform: translate(0,0) scale(1) } to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.4) } }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .aside { position: static; order: -1; }
+  .oracle { width: 180px; }
+}
+@media (max-width: 600px) {
+  .card { padding: 20px 16px; border-radius: 20px; }
+  .row2, .paths { grid-template-columns: 1fr; }
+  .steps .lbl { display: none; }
+  .card-row { grid-template-columns: 22px minmax(0, 1fr) 36px; }
+  .card-row .kw { grid-column: 2 / 3; }
+  .card-row .num { grid-row: span 2; align-self: start; padding-top: 12px; }
+  .card-row .icon-btn { grid-row: 1; grid-column: 3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div class="scene" aria-hidden="true" id="scene"></div>
+
+<header class="strip">
+  <div class="strip-inner">
+    <div class="strip-top">
+      <span class="brand"><i>&#10022;</i> Oracle Card Builder</span>
+      <span class="strip-count" id="stripCount">Step 1 of 7</span>
+    </div>
+    <ol class="steps" id="steps"></ol>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="layout">
+    <section id="stage" aria-live="polite"></section>
+    <aside class="aside" id="aside"></aside>
+  </div>
+</main>
+
+<script>
+(function () {
+  var KEY = 'sff-oracle-card-builder-v2';
+  var STEPS = [
+    { id: 'deck', short: 'Your deck', title: 'Dream up your deck', lede: 'Who it is for, what it helps them with, and how much of the writing you want AI to take on.' },
+    { id: 'look', short: 'The look', title: 'Choose the look', lede: 'Describe your art once. Every image prompt in this builder carries it, so all your cards match.' },
+    { id: 'list', short: 'Your cards', title: 'Gather your cards', lede: 'Three ways in. Let AI write the whole deck, paste a list you already have, or add your cards one by one.' },
+    { id: 'write', short: 'Card texts', title: 'Write each card', lede: 'One card at a time. Edit anything AI wrote until it sounds like you, or write it all yourself.' },
+    { id: 'art', short: 'Card art', title: 'Make the card art', lede: 'Open one ChatGPT chat for the whole deck. Pick a layout for card one, lock it in as your template, make every other card, then the card back.' },
+    { id: 'guide', short: 'Guidebook', title: 'Write your guidebook', lede: 'Two short pages that open your deck: who it is for, and how to use it.' },
+    { id: 'build', short: 'Build it', title: 'Build your deck', lede: 'Everything you made, packed into one prompt. Give Claude your card images and this prompt, and your deck comes back as an interactive artifact: a draw, a spread, a gallery and a journal.' }
+  ];
+  var USES = ['My own practice', 'A gift for clients', 'A lead magnet', 'A product to sell'];
+  var FULL = ['name', 'keyword', 'message', 'shadow', 'question', 'practice', 'image'];
+  var TEXTS = ['name', 'message', 'shadow', 'question', 'practice'];
+  var LIST = ['name', 'keyword', 'meaning'];
+
+  function blankCard() { return { name: '', keyword: '', meaning: '', message: '', shadow: '', question: '', practice: '', image: '' }; }
+  function blank() {
+    return { step: 0, done: [], path: 'ai', listTab: 'ai', artTool: 'chatgpt', current: 0, flash: '',
+      deck: { name: '', audience: '', helps: '', use: '', count: 22 },
+      look: { style: '', palette: '', motifs: '', mood: '', ref: false },
+      cards: [blankCard(), blankCard(), blankCard()],
+      guide: { back: '', welcome: '', howto: '' } };
+  }
+  function example() {
+    var s = blank(); s.example = true; s.listTab = 'type';
+    s.deck = { name: 'Steady Before the Reading', audience: 'Tarot readers who get nervous before a client session', helps: 'Settle their nerves and trust their read in the five minutes before a session starts', use: 'A lead magnet', count: 12 };
+    s.look = { style: 'soft watercolor with fine ink linework', palette: 'periwinkle, warm blush, candle gold', motifs: 'candles, open hands, a crescent moon', mood: 'calm, cozy, a little magical', ref: false };
+    s.cards = [
+      { name: 'The Lit Candle', keyword: 'Presence', meaning: 'Arriving in your body before you read', message: 'You are already here. Feel your feet, take one slow breath, and let the room come to you.', shadow: 'Rushing to fill the silence before the cards have spoken.', question: 'What do I notice in my body right now?', practice: 'Light a candle before your next session and wait three breaths before you shuffle.', image: 'a single tall candle on a wooden table, flame perfectly still' },
+      { name: 'Open Hands', keyword: 'Trust', meaning: 'Letting the deck do its part', message: 'Your hands know these cards. Let them shuffle while your mind rests.', shadow: 'Gripping the deck and second guessing every card that lands.', question: 'Where am I holding on too tight?', practice: 'Shuffle with your eyes closed for one full minute.', image: 'two open palms facing up, a tarot deck resting between them' },
+      { name: 'The Quiet Moon', keyword: 'Intuition', meaning: 'Saying your first impression out loud', message: 'The first thing you see in the card is the thing to say. Say it.', shadow: 'Swapping your first read for the textbook meaning.', question: 'What did I see before I started thinking?', practice: 'Pull one card and speak your first impression out loud before you look anything up.', image: 'a crescent moon reflected in still water' }
+    ];
+    s.guide = { back: 'A gold crescent moon inside a thin circle on soft periwinkle', welcome: 'This deck is for the five minutes before you read for someone. Pull a card, sit with it, and walk into your session steady.', howto: 'Shuffle while you take three slow breaths. Pull one card. Read the message, answer the question, and do the practice before your client arrives.' };
+    return s;
+  }
+
+  var S;
+  try { S = JSON.parse(localStorage.getItem(KEY)) || blank(); } catch (e) { S = blank(); }
+  S = Object.assign(blank(), S);
+  S.cards = (S.cards || []).map(function (c) { return Object.assign(blankCard(), c); });
+  if (!S.cards.length) S.cards = [blankCard()];
+  function save() { try { var c = Object.assign({}, S); delete c.flash; localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {} }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function v(s) { return String(s == null ? '' : s).trim(); }
+  function named() { return S.cards.filter(function (c) { return v(c.name); }); }
+  function complete(c) { return v(c.name) && v(c.message) && v(c.question); }
+  function cur() { return S.cards[S.current] || S.cards[0]; }
+
+  /* ---------- prompt text ---------- */
+  function brief() {
+    var d = S.deck;
+    return 'Deck name: ' + (v(d.name) || 'not chosen yet') + '\n' +
+      'Who it is for: ' + (v(d.audience) || '[who it is for]') + '\n' +
+      'What it helps them do: ' + (v(d.helps) || '[what it helps them do]') + '\n' +
+      'How I will use it: ' + (v(d.use) || '[how you will use it]');
+  }
+  function lookText() {
+    var l = S.look, p = [];
+    if (v(l.style)) p.push('Art style: ' + v(l.style));
+    if (v(l.palette)) p.push('Colors: ' + v(l.palette));
+    if (v(l.motifs)) p.push('Symbols that repeat: ' + v(l.motifs));
+    if (v(l.mood)) p.push('Mood: ' + v(l.mood));
+    return p.join('\n');
+  }
+  var VOICE = 'Write it in my voice. Here is a paragraph I wrote so you can hear how I sound:\n[paste a paragraph of your own writing here]\n\nPlain words, short sentences, no em dashes.';
+  function wholeDeckPrompt() {
+    var name = v(S.deck.name) ? '' : 'First, suggest five names for the deck and tell me your favorite. Then ';
+    return 'I am making an oracle deck.\n\n' + brief() + (lookText() ? '\n' + lookText() : '') + '\n\n' +
+      name + (name ? 'w' : 'W') + 'rite all ' + (S.deck.count || 22) + ' cards. Cover the full range of what the person who pulls these cards goes through, including the hard parts. Give every card a name that is a picture someone can see.\n\n' +
+      'For each card give me:\n- Name\n- Keyword (one word)\n- Message: two or three sentences spoken straight to the person who pulled the card\n- Shadow: one sentence on how this shows up out of balance\n- Journal question: one question\n- Practice: one small thing to do today\n- Image: one sentence describing what is pictured on the card\n\n' +
+      'Put each card on ONE line, parts split by a | symbol, in this order:\nName | Keyword | Message | Shadow | Journal question | Practice | Image\nNo header row, no numbering, no extra text between cards.\n\n' + VOICE;
+  }
+  function listOnlyPrompt() {
+    return 'I am making an oracle deck.\n\n' + brief() + '\n\nSuggest ' + (S.deck.count || 22) + ' cards. Give each a name that is a picture someone can see, one keyword, and a short line on what the card means.\n\nPut each card on ONE line in this format:\nName | Keyword | What it means\nNo header row and no numbering.';
+  }
+  function draftPrompt(c) {
+    return 'I am writing the cards for my oracle deck.\n\n' + brief() + '\n\nDraft this card:\nName: ' + (v(c.name) || '[card name]') + '\nKeyword: ' + (v(c.keyword) || '[keyword]') +
+      (v(c.meaning) ? '\nWhat it means to me: ' + v(c.meaning) : '') + '\n\n' +
+      'Give me:\n1. Message: two or three sentences spoken straight to the person who pulled the card\n2. Shadow: one sentence on how this shows up out of balance\n3. Journal question: one question\n4. Practice: one small thing to do today\n\n' + VOICE;
+  }
+  function fillGapsPrompt() {
+    var todo = named().filter(function (c) { return !complete(c); });
+    if (!todo.length) return '';
+    return 'I am writing the cards for my oracle deck.\n\n' + brief() + '\n\nWrite the text for these cards:\n' +
+      todo.map(function (c) { return '- ' + v(c.name) + (v(c.keyword) ? ' (' + v(c.keyword) + ')' : '') + (v(c.meaning) ? ': ' + v(c.meaning) : ''); }).join('\n') +
+      '\n\nFor each card give me a Message (two or three sentences spoken straight to the person who pulled it), a Shadow (one sentence), a Journal question, and a Practice (one small thing to do today).\n\n' +
+      'Put each card on ONE line in this order:\nName | Message | Shadow | Journal question | Practice\nUse the card names exactly as I wrote them. No header row and no numbering.\n\n' + VOICE;
+  }
+  function styleWords() {
+    var l = S.look, p = [];
+    if (v(l.style)) p.push(v(l.style));
+    if (v(l.palette)) p.push('in ' + v(l.palette));
+    if (v(l.motifs)) p.push('with ' + v(l.motifs) + ' woven in');
+    if (v(l.mood)) p.push('feeling ' + v(l.mood));
+    return p.join(', ');
+  }
+  function subjectOf(c) { return v(c.image) || ('an image that captures "' + (v(c.name) || 'this card') + '"' + (v(c.keyword) ? ' and the feeling of ' + v(c.keyword).toLowerCase() : '') + '. You choose the scene'); }
+  function nameOn() { return S.nameOnArt !== false; }
+  function gptSetup() {
+    var first = named()[0] || cur();
+    return 'I am making a ' + (named().length || S.deck.count || '') + '-card oracle deck' + (v(S.deck.name) ? ' called "' + v(S.deck.name) + '"' : '') + ' and I want you to make every card image in this chat, one at a time, all in the same style.\n\n' +
+      (S.look.ref ? 'Use the uploaded image as the style reference for every card.\n' : '') +
+      (styleWords() ? 'The style for the whole deck: ' + styleWords() + '.\n' : '') +
+      (nameOn()
+        ? 'Every image is a 2:3 portrait card illustration with the card name printed on it, spelled exactly as I give it. No other words, letters or numbers on the image.\n\n'
+        : 'Every image is a 2:3 portrait card illustration with no words, letters or numbers anywhere on it.\n\n') +
+      'Start with the first card, "' + (v(first.name) || '[card name]') + '": ' + subjectOf(first) + '.\n\n' +
+      'Make three versions of this first card, each with a different card layout: a different border and frame' + (nameOn() ? ', and a different place and lettering for the name' : '') + '. Label them Option 1, Option 2 and Option 3 so I can choose. Once I pick one, use that layout for every card in the deck.';
+  }
+  function lockPrompt() {
+    return 'I choose Option ' + (S.layoutPick || '[1, 2 or 3]') + '. Make it the base template for every card in this deck: the same border, frame' + (nameOn() ? ', name placement and lettering' : '') + ', exactly as it is. On every card from now on, change only the illustration inside it' + (nameOn() ? ' and the name' : '') + '. Tell me you have it, then wait for the next card.';
+  }
+  function batchPrompt() {
+    var rest = named().slice(1);
+    return 'Now make every other card in the deck, one image per card, all on the base template. Keep the border, frame' + (nameOn() ? ', name placement and lettering' : '') + ' exactly the same and change only the illustration' + (nameOn() ? ' and the name, spelled exactly as written here' : '') + '. Work through the whole list without stopping to ask me, and label each image with its number.\n\n' +
+      rest.map(function (c, i) { return (i + 2) + '. "' + (v(c.name) || '[card name]') + '": ' + subjectOf(c); }).join('\n');
+  }
+  function gptCard(c) {
+    return 'Next card, built on the base template. Please generate the card "' + (v(c.name) || '[card name]') + '": ' + subjectOf(c) + '. 2:3 portrait, ' + (nameOn() ? 'with "' + (v(c.name) || '[card name]') + '" across the bottom exactly as written, and no other text.' : 'no text on the image.');
+  }
+  function mjLine() {
+    var l = S.look, p = [];
+    if (v(l.style)) p.push(v(l.style));
+    if (v(l.palette)) p.push(v(l.palette) + ' color palette');
+    if (v(l.motifs)) p.push(v(l.motifs));
+    if (v(l.mood)) p.push(v(l.mood) + ' mood');
+    p.push('oracle card illustration, ornate thin border, no text');
+    return p.join(', ') + ' --ar 2:3';
+  }
+  function mjCard(c) { return (v(c.image) || '[what is on the ' + (v(c.name) || 'card') + ' card]') + ', ' + mjLine(); }
+  function artPrompt(c) {
+    if (S.artTool === 'mj') return mjCard(c);
+    return (named()[0] === c) ? gptSetup() : gptCard(c);
+  }
+  function allArt() {
+    if (S.artTool === 'mj') return named().map(function (c, i) { return (i + 1) + '. ' + v(c.name) + '\n' + mjCard(c); }).join('\n\n');
+    return '1. Card one, three layouts\n' + gptSetup() + '\n\n2. Lock in the layout you picked\n' + lockPrompt() +
+      (named().length > 1 ? '\n\n3. Every other card in one go\n' + batchPrompt() : '');
+  }
+  function backPrompt() {
+    var b = v(S.guide.back) || '[your card back design]';
+    if (S.artTool === 'mj') return b + ', symmetrical card back design, ' + mjLine();
+    return 'Last one: the back of the cards, in the same art style as the deck. ' + b + '. Make it symmetrical so it looks the same upside down. 2:3 portrait, no words on it.';
+  }
+  function guidePrompt() {
+    return 'I made an oracle deck.\n\n' + brief() + '\n\nWrite the two opening pages of the guidebook:\n1. Intro: three or four sentences on who this deck is for and when to reach for it.\n2. How to use the deck: three or four simple steps, from shuffling to doing something with the card.\n\nGive me each one as a plain paragraph with its title above it, so I can paste them straight in.\n\n' + VOICE;
+  }
+  function haveImgs() { return S.haveImgs !== false; }
+  function buildPrompt() {
+    var g = S.guide, o = [], where = v(S.deck.images);
+    if (haveImgs()) o.push('I would love to create an artifact with my new oracle deck. ' +
+      (where ? 'My card images are here: ' + where + '.' : 'My card images are attached to this message.') +
+      ' Each image file is named after its card, so match them by name' +
+      (S.artTool !== 'mj' && nameOn() ? ', and the card names are already printed on the images, so do not lay a name over the art' : '') + '.');
+    else o.push('I would love to create an artifact with my new oracle deck. I do not have card images yet, so design each card face yourself from the look below: the card name, its keyword and a simple symbol or illustration that fits it. Give every card a spot for an image so I can add my own art later, and tell me what to name each file so it drops straight in.');
+    o.push('', 'Build it as one interactive page that feels like a real deck in the hand:',
+      '- A draw: the person presses and holds a symbol from the deck, then one card rises and flips over to show its message, shadow, journal question and practice',
+      '- A three-card spread with a name that fits this deck, laid face down and turned over one card at a time',
+      '- A gallery of every card, so they can open any one on purpose',
+      '- A journal that keeps each card they save with the date, saved in their browser',
+      '- The guidebook intro and how-to pages, plus the card back on every face-down card',
+      'Give it a look of its own from the art style and colors below, built fresh for this deck.');
+    o.push('', 'DECK', brief(), '', 'LOOK');
+    o.push(lookText() || 'Use colors that fit the deck.');
+    o.push('Card back: ' + (v(g.back) || 'your choice'));
+    o.push('', 'GUIDEBOOK', 'Intro page: ' + (v(g.welcome) || '-'), 'How to use the deck: ' + (v(g.howto) || '-'));
+    o.push('', 'CARDS (' + named().length + ')');
+    named().forEach(function (c, i) {
+      o.push('', (i + 1) + '. ' + v(c.name) + (v(c.keyword) ? ' | ' + v(c.keyword) : ''));
+      o.push('Message: ' + (v(c.message) || '-'), 'Shadow: ' + (v(c.shadow) || '-'), 'Journal question: ' + (v(c.question) || '-'), 'Practice: ' + (v(c.practice) || '-'));
+    });
+    return o.join('\n');
+  }
+
+  /* ---------- paste-back ---------- */
+  function parse(text, cols) {
+    var out = [];
+    String(text || '').split(/\r?\n/).forEach(function (line) {
+      var l = line.replace(/^\s*(?:[-*•]\s+|\d+[.)]\s+)/, '').trim();
+      if (l.indexOf('|') < 0) return;
+      var cells = l.split('|').map(function (x) { return x.replace(/\*\*/g, '').trim(); });
+      if (cells[0] === '') cells.shift();
+      if (cells.length && cells[cells.length - 1] === '') cells.pop();
+      if (!cells.length || cells.every(function (x) { return /^:?-{2,}:?$/.test(x); })) return;
+      if (/^(card )?name$/i.test(cells[0])) return;
+      var c = {};
+      cols.forEach(function (k, i) { if (cells[i]) c[k] = cells[i]; });
+      if (v(c.name)) out.push(c);
+    });
+    return out;
+  }
+  function merge(list) {
+    S.cards = S.cards.filter(function (c) { return v(c.name) || v(c.keyword) || v(c.message); });
+    var added = 0, updated = 0;
+    list.forEach(function (p) {
+      var hit = S.cards.filter(function (c) { return v(c.name).toLowerCase() === p.name.toLowerCase(); })[0];
+      if (hit) { Object.keys(p).forEach(function (k) { if (k !== 'name') hit[k] = p[k]; }); updated++; }
+      else { S.cards.push(Object.assign(blankCard(), p)); added++; }
+    });
+    if (!S.cards.length) S.cards = [blankCard()];
+    S.current = 0;
+    return { added: added, updated: updated };
+  }
+  function mergeMsg(r) {
+    var bits = [];
+    if (r.added) bits.push(r.added + ' card' + (r.added === 1 ? '' : 's') + ' added');
+    if (r.updated) bits.push(r.updated + ' card' + (r.updated === 1 ? '' : 's') + ' filled in');
+    return bits.length ? bits.join(', ') + '.' : '';
+  }
+
+  /* ---------- pieces ---------- */
+  function promptBox(label, text, btn) {
+    return '<div class="prompt"><div class="prompt-head"><span class="lab">' + esc(label) + '</span><span><span class="copied"></span> <button class="btn sm peri" type="button" data-copy>' + esc(btn || 'Copy prompt') + '</button></span></div><pre>' + esc(text) + '</pre></div>';
+  }
+  function pasteBox(id, label, hint, btn) {
+    return '<div class="field"><label for="' + id + '">' + esc(label) + '</label><textarea id="' + id + '" rows="5" placeholder="' + esc(hint) + '"></textarea></div>' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn" type="button" data-paste="' + id + '">' + esc(btn) + '</button>' + flashHtml() + '</div>';
+  }
+  function flashHtml() { return S.flash ? '<p class="flash' + (S.flash.charAt(0) === '!' ? ' warn' : '') + '">' + esc(S.flash.replace(/^!/, '')) + '</p>' : ''; }
+  function field(id, label, value, o) {
+    o = o || {};
+    var ctl = o.area ? '<textarea id="' + id + '" data-bind="' + o.bind + '" rows="' + (o.rows || 3) + '" placeholder="' + esc(o.ph || '') + '">' + esc(value) + '</textarea>'
+      : '<input type="' + (o.type || 'text') + '" id="' + id + '" data-bind="' + o.bind + '" value="' + esc(value) + '" placeholder="' + esc(o.ph || '') + '"' + (o.type === 'number' ? ' min="3" max="78"' : '') + '>';
+    return '<div class="field"><label for="' + id + '">' + esc(label) + '</label>' + ctl + (o.hint ? '<p class="hint">' + esc(o.hint) + '</p>' : '') + '</div>';
+  }
+  function setPath(path, val) { var p = path.split('.'), o = S; for (var i = 0; i < p.length - 1; i++) o = o[p[i]]; o[p[p.length - 1]] = val; }
+  function picker(markFn) {
+    var list = S.cards.map(function (c, i) { return { c: c, i: i }; }).filter(function (x) { return v(x.c.name); });
+    if (!v(cur().name) && list.length) S.current = list[0].i;
+    var opts = list.map(function (x, n) { return '<option value="' + x.i + '"' + (x.i === S.current ? ' selected' : '') + '>' + (n + 1) + '. ' + esc(x.c.name) + '</option>'; }).join('');
+    var dots = list.map(function (x) { return '<span class="' + (markFn(x.c) ? 'full' : '') + (x.i === S.current ? ' on' : '') + '"></span>'; }).join('');
+    return '<div class="picker"><button class="icon-btn" type="button" id="prevCard" aria-label="Previous card">&lsaquo;</button><select id="cardPick" aria-label="Choose a card">' + opts + '</select><button class="icon-btn" type="button" id="nextCard" aria-label="Next card">&rsaquo;</button></div><div class="dots" aria-hidden="true">' + dots + '</div>';
+  }
+  var noCards = '<div class="card"><p class="lede">Your cards show up here once you have at least one. Head back to step 3 to gather them.</p></div>';
+
+  /* ---------- steps ---------- */
+  function bodyDeck() {
+    var d = S.deck;
+    var uses = USES.map(function (u, i) { return '<label class="choice"><input type="radio" name="use" id="use' + i + '" value="' + esc(u) + '"' + (d.use === u ? ' checked' : '') + '><span>' + esc(u) + '</span></label>'; }).join('');
+    var path = function (val, icon, title, txt) { return '<label class="path"><input type="radio" name="path" id="path-' + val + '" value="' + val + '"' + (S.path === val ? ' checked' : '') + '><span class="pc"><em>' + icon + '</em><b>' + title + '</b><span>' + txt + '</span></span></label>'; };
+    return (S.example ? '<div class="example-bar"><span>This is a sample deck. Click through the steps to see how it fills in.</span><button class="btn ghost sm" type="button" id="clearEx">Clear it and start mine</button></div>'
+      : '<div class="example-bar"><span>Want to see one filled in first?</span><button class="btn ghost sm" type="button" id="loadEx">Load the sample deck</button></div>') +
+      '<div class="card stack">' +
+      '<div class="field"><span class="lab">How much do you want to write?</span><div class="paths">' +
+      path('ai', '&#10024;', 'AI does the heavy lifting', 'Give it your idea. AI writes the cards and you edit what you love.') +
+      path('plan', '&#9998;', 'I plan every detail', 'You bring the card list and meanings. AI helps where you ask it to.') +
+      '</div></div>' +
+      field('d-name', 'Deck name', d.name, { bind: 'deck.name', ph: 'Steady Before the Reading', hint: 'No name yet? Leave it blank and AI suggests some in step 3.' }) +
+      field('d-aud', 'Who it is for', d.audience, { bind: 'deck.audience', ph: 'Tarot readers who get nervous before a client session' }) +
+      field('d-helps', 'What it helps them do', d.helps, { bind: 'deck.helps', area: true, rows: 2, ph: 'Settle their nerves and trust their read before a session starts' }) +
+      '<div class="field"><span class="lab">How you will use it</span><div class="choices">' + uses + '</div></div>' +
+      field('d-count', 'How many cards', d.count, { bind: 'deck.count', type: 'number', hint: 'Most oracle decks land between 12 and 44.' }) +
+      '</div>';
+  }
+  function bodyLook() {
+    var l = S.look;
+    return '<div class="card stack"><div class="row2">' +
+      field('l-style', 'Art style', l.style, { bind: 'look.style', ph: 'soft watercolor with fine ink linework' }) +
+      field('l-pal', 'Colors', l.palette, { bind: 'look.palette', ph: 'periwinkle, warm blush, candle gold' }) +
+      '</div><div class="row2">' +
+      field('l-mot', 'Symbols that repeat', l.motifs, { bind: 'look.motifs', ph: 'candles, open hands, a crescent moon' }) +
+      field('l-mood', 'Mood', l.mood, { bind: 'look.mood', ph: 'calm, cozy, a little magical' }) +
+      '</div>' +
+      '<label class="toggle"><input type="checkbox" id="l-ref"' + (l.ref ? ' checked' : '') + '> I have a picture of the style I want and will upload it to ChatGPT</label>' +
+      '<p class="hint">Leave any of these blank and the AI picks for you. The more you fill in, the more your cards look like yours.</p>' +
+      '</div>';
+  }
+  function bodyList() {
+    var tab = S.listTab, body;
+    if (tab === 'ai') {
+      body = '<h3>Let AI write the whole deck</h3><ol class="numbered"><li>Copy this prompt into Claude or ChatGPT.</li><li>Paste a paragraph of your own writing where it asks, so the cards sound like you.</li><li>Copy everything it sends back and paste it in the box below.</li></ol>' +
+        promptBox('Whole deck prompt', wholeDeckPrompt()) +
+        pasteBox('pasteFull', 'Paste the AI reply here', 'The Lit Candle | Presence | You are already here... | Rushing to fill the silence... | What do I notice in my body right now? | Light a candle... | a single tall candle on a wooden table', 'Fill my cards');
+    } else if (tab === 'paste') {
+      body = '<h3>Paste a list you already have</h3><p class="hint">One card per line. Put a | between the name, keyword and meaning. Only the name is required.</p>' +
+        pasteBox('pasteList', 'Your card list', 'The Lit Candle | Presence | Arriving in your body before you read\nOpen Hands | Trust\nThe Quiet Moon', 'Add these cards') +
+        '<p class="hint">Want ideas to start from? This prompt asks AI for a list in exactly this format.</p>' + promptBox('Card ideas prompt', listOnlyPrompt());
+    } else {
+      var rows = S.cards.map(function (c, i) {
+        return '<div class="card-row"><span class="num">' + (i + 1) + '</span><input type="text" id="cn' + i + '" data-card="' + i + '" data-key="name" value="' + esc(c.name) + '" placeholder="Card name" aria-label="Card ' + (i + 1) + ' name">' +
+          '<input class="kw" type="text" id="ck' + i + '" data-card="' + i + '" data-key="keyword" value="' + esc(c.keyword) + '" placeholder="Keyword" aria-label="Card ' + (i + 1) + ' keyword">' +
+          '<button class="icon-btn" type="button" data-remove="' + i + '" aria-label="Remove card ' + (i + 1) + '">&times;</button></div>';
+      }).join('');
+      body = '<h3>Add your cards one by one</h3>' + flashHtml() + '<div class="cards-list">' + rows + '</div><div><button class="btn ghost sm" type="button" id="addCard">Add a card</button></div>';
+    }
+    var tabBtn = function (id, label) { return '<button type="button" role="tab" data-tab="' + id + '" aria-selected="' + (tab === id) + '">' + label + '</button>'; };
+    return '<div class="card stack"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="tabs" role="tablist">' +
+      tabBtn('ai', 'AI writes it') + tabBtn('paste', 'Paste my list') + tabBtn('type', 'One by one') +
+      '</div><span class="count-pill" id="countPill">' + named().length + ' of ' + (S.deck.count || '?') + ' cards</span></div>' + body + '</div>';
+  }
+  function bodyWrite() {
+    if (!named().length) return noCards;
+    var c = cur(), gaps = fillGapsPrompt();
+    return '<div class="card stack">' + picker(complete) +
+      field('w-mean', 'What it means to you', c.meaning, { bind: 'card.meaning', ph: 'A few words on the heart of this card' }) +
+      field('w-msg', 'Message', c.message, { bind: 'card.message', area: true, rows: 3, ph: 'What the card says to the person who pulled it' }) +
+      field('w-sh', 'Shadow', c.shadow, { bind: 'card.shadow', area: true, rows: 2, ph: 'How this shows up when it is out of balance' }) +
+      field('w-q', 'Journal question', c.question, { bind: 'card.question', ph: 'One question they can answer in a few minutes' }) +
+      field('w-pr', 'Practice', c.practice, { bind: 'card.practice', area: true, rows: 2, ph: 'One small thing to do today' }) +
+      '<div id="draftBox">' + promptBox('Draft just this card with AI', draftPrompt(c)) + '</div></div>' +
+      (gaps ? '<div class="card soft stack gap-top"><h3>Let AI fill every empty card</h3><p class="hint">Copy this, run it in Claude or ChatGPT, then paste the reply below. Cards you already wrote stay as they are.</p>' +
+        promptBox('Fill the empty cards', gaps) + pasteBox('pasteTexts', 'Paste the AI reply here', 'The Quiet Moon | The first thing you see... | Swapping your first read... | What did I see...? | Pull one card...', 'Fill these cards') + '</div>' : '');
+  }
+  function bodyArt() {
+    if (!named().length) return noCards;
+    var c = cur(), isFirst = named()[0] === c, gpt = S.artTool === 'chatgpt';
+    var tool = '<div class="tabs" role="tablist"><button type="button" role="tab" data-tool="chatgpt" aria-selected="' + gpt + '">ChatGPT</button><button type="button" role="tab" data-tool="mj" aria-selected="' + !gpt + '">Midjourney</button></div>';
+    return '<div class="card stack">' + tool + picker(function (x) { return v(x.image); }) +
+      field('a-img', 'What is on this card', c.image, { bind: 'card.image', area: true, rows: 2, ph: 'a single tall candle on a wooden table, flame perfectly still', hint: gpt ? 'Leave it blank and ChatGPT chooses the scene from the card name.' : 'Describe the scene in plain words. Your look gets added for you.' }) +
+      (gpt ? '<label class="toggle"><input type="checkbox" id="a-name"' + (nameOn() ? ' checked' : '') + '> Print the card name on each image</label>' : '') +
+      '<div id="artBox">' + promptBox(gpt ? (isFirst ? 'Card 1 starts the chat and sets the style' : 'Paste in the same chat') : 'Midjourney prompt', artPrompt(c)) + '</div>' +
+      (gpt && isFirst ? '<div class="field"><span class="lab">The layout you picked</span><div class="choices">' +
+        [1, 2, 3].map(function (n) { return '<label class="choice"><input type="radio" name="layoutPick" id="lay' + n + '" value="' + n + '"' + (S.layoutPick == n ? ' checked' : '') + '><span>Option ' + n + '</span></label>'; }).join('') +
+        '</div></div><div id="lockBox">' + promptBox('Then make it the base template for every card', lockPrompt()) + '</div>' +
+        (named().length > 1 ? '<div id="batchBox">' + promptBox('Then make every other card in one go (ChatGPT Work)', batchPrompt()) + '</div>' : '') : '') +
+      (gpt ? '<p class="hint">' + (S.look.ref ? 'Upload your style picture with the first prompt. ' : '') + (isFirst ? 'ChatGPT sends three layouts for card 1. Tick the one you like, paste the base template prompt, then the every-card prompt, all in the same chat. Pick any card above to redo just that one. ' : '') + 'Keep every card in one chat so the style stays the same. If a card drifts, reply: match the style of the first card exactly.</p>' : '') +
+      '</div><div class="card soft stack gap-top" id="allBox">' + promptBox('Every card, in order', allArt(), 'Copy all prompts') + '</div>' +
+      '<div class="card stack gap-top"><h3>The back of your cards</h3>' +
+      field('g-back', 'Card back design', S.guide.back, { bind: 'guide.back', area: true, rows: 2, ph: 'A gold crescent moon inside a thin circle on soft periwinkle' }) +
+      '<div id="backBox">' + promptBox('Then the back of the cards', backPrompt()) + '</div></div>';
+  }
+  function bodyGuide() {
+    var g = S.guide;
+    return '<div class="card stack">' +
+      promptBox('Have AI write both pages', guidePrompt()) +
+      '<p class="hint">Copy this into Claude or ChatGPT, then paste each page below and change anything that does not sound like you.</p>' +
+      field('g-wel', 'Intro page', g.welcome, { bind: 'guide.welcome', area: true, rows: 4, ph: 'This deck is for the five minutes before you read for someone...' }) +
+      field('g-how', 'How to use the deck', g.howto, { bind: 'guide.howto', area: true, rows: 4, ph: 'Shuffle while you take three slow breaths. Pull one card...' }) +
+      '</div>';
+  }
+  function gapList() {
+    var g = [];
+    if (!v(S.deck.audience)) g.push('Who it is for (step 1)');
+    if (!named().length) g.push('Your cards (step 3)');
+    var un = named().filter(function (c) { return !complete(c); }).map(function (c) { return v(c.name); });
+    if (un.length) g.push('Message and journal question for ' + un.join(', ') + ' (step 4)');
+    if (!v(S.guide.welcome)) g.push('Guidebook intro page (step 6)');
+    return g;
+  }
+  function bodyBuild() {
+    var n = named(), w = n.filter(complete).length, gaps = gapList();
+    return '<div class="card stack"><div class="summary">' +
+      '<div class="stat"><b>' + n.length + '</b><span>Cards</span></div><div class="stat"><b>' + w + '</b><span>Written</span></div>' +
+      '<div class="stat"><b>' + n.filter(function (c) { return v(c.image); }).length + '</b><span>Art planned</span></div><div class="stat"><b>' + (S.deck.count || 0) + '</b><span>Goal</span></div></div>' +
+      (gaps.length ? '<div><span class="lab">Still open</span><ul class="gaps">' + gaps.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>'
+        : '<p class="flash">Every card is written. Your deck is ready to build.</p>') +
+      '<div class="tabs" role="tablist"><button type="button" role="tab" data-imgs="yes" aria-selected="' + haveImgs() + '">I have my card images</button><button type="button" role="tab" data-imgs="no" aria-selected="' + !haveImgs() + '">I don\'t have images yet</button></div>' +
+      (haveImgs()
+        ? '<ol class="numbered"><li>Save every card image with the card name as the file name, plus your card back.</li><li>Open a new Claude chat and upload all of them, or paste the link to the folder they live in below.</li><li>Paste this prompt and send it.</li></ol>' +
+          field('d-imgs', 'Where your card images are (optional)', S.deck.images, { bind: 'deck.images', ph: 'Leave blank if you upload them to the chat' })
+        : '<ol class="numbered"><li>Open a new Claude chat.</li><li>Paste this prompt and send it. Claude designs each card face from your look.</li><li>When your art is ready, upload it in the same chat and ask Claude to swap each image in.</li></ol>') +
+      '<div id="buildBox">' + promptBox('Your build prompt', buildPrompt(), 'Copy build prompt') + '</div></div>';
+  }
+
+  /* ---------- preview ---------- */
+  function preview() {
+    var id = STEPS[S.step].id;
+    if (id === 'guide') return '<div class="oracle-wrap"><div class="oracle"><div class="o-deck">' + esc(v(S.deck.name) || 'Your deck') + '</div>' +
+      '<div class="o-art"><p>' + esc(v(S.guide.welcome) || 'Your intro page shows here') + '</p></div>' +
+      '<div><div class="o-name">Guidebook</div><div class="o-key">Intro page</div></div></div></div><span class="aside-cap">Live preview</span>';
+    var c = (id === 'write' || id === 'art') ? cur() : (named()[0] || S.cards[0]);
+    var txt = id === 'art' ? v(c.image) : v(c.message);
+    return '<div class="oracle-wrap"><div class="oracle"><div class="o-deck">' + esc(v(S.deck.name) || 'Your deck') + '</div>' +
+      '<div class="o-art"><p>' + esc(txt || (id === 'art' ? 'Your card art' : 'Your message shows here')) + '</p></div>' +
+      '<div><div class="o-name">' + esc(v(c.name) || 'Card name') + '</div><div class="o-key">' + esc(v(c.keyword) || 'Keyword') + '</div></div></div></div>' +
+      '<span class="aside-cap">' + (S.example ? 'Sample deck' : 'Live preview') + '</span>';
+  }
+
+  /* ---------- render ---------- */
+  var stage = document.getElementById('stage'), aside = document.getElementById('aside');
+  function reach() { var m = S.step; S.done.forEach(function (d) { m = Math.max(m, d + 1); }); return Math.min(m, STEPS.length - 1); }
+  function renderStrip() {
+    var r = reach();
+    document.getElementById('steps').innerHTML = STEPS.map(function (s, i) {
+      var cls = i === S.step ? 'current' : (S.done.indexOf(i) > -1 ? 'done' : '');
+      return '<li class="' + cls + '"><button type="button" data-go="' + i + '"' + (i > r ? ' disabled' : '') + ' aria-label="Step ' + (i + 1) + ': ' + esc(s.short) + '"' + (i === S.step ? ' aria-current="step"' : '') + '><span class="bar"></span><span class="lbl">' + (i + 1) + ' ' + esc(s.short) + '</span></button></li>';
+    }).join('');
+    document.getElementById('stripCount').textContent = 'Step ' + (S.step + 1) + ' of ' + STEPS.length;
+  }
+  function render() {
+    var s = STEPS[S.step], b = { deck: bodyDeck, look: bodyLook, list: bodyList, write: bodyWrite, art: bodyArt, guide: bodyGuide, build: bodyBuild }[s.id]();
+    var last = S.step === STEPS.length - 1;
+    stage.innerHTML = '<div class="step-head"><span class="kicker">Step ' + (S.step + 1) + ' of 7</span><h1>' + esc(s.title) + '</h1><p class="lede">' + esc(s.lede) + '</p></div>' + b +
+      '<div class="nav">' + (S.step > 0 ? '<button class="btn ghost" type="button" id="back">Back</button>' : '<span></span>') + '<div class="right">' +
+      (last ? '<span class="confirm" id="resetWrap"><button class="reset" type="button" id="resetAsk">Start a new deck</button></span>' : '<button class="btn" type="button" id="doneBtn">Mark this step done &#10022;</button>') + '</div></div>';
+    aside.innerHTML = preview();
+    renderStrip();
+    S.flash = '';
+    save();
+  }
+  function swap(id, label, text, btn) { var el = document.getElementById(id); if (el) el.innerHTML = promptBox(label, text, btn); }
+  function live() {
+    aside.innerHTML = preview();
+    var id = STEPS[S.step].id;
+    if (id === 'write') { swap('draftBox', 'Draft just this card with AI', draftPrompt(cur())); dotsRefresh(complete); }
+    if (id === 'art') { var f = named()[0] === cur(); swap('artBox', S.artTool === 'chatgpt' ? (f ? 'Card 1 starts the chat and sets the style' : 'Paste in the same chat') : 'Midjourney prompt', artPrompt(cur())); swap('allBox', 'Every card, in order', allArt(), 'Copy all prompts'); if (document.getElementById('batchBox')) swap('batchBox', 'Then make every other card in one go (ChatGPT Work)', batchPrompt()); dotsRefresh(function (c) { return v(c.image); }); }
+    if (id === 'art' && document.getElementById('backBox')) swap('backBox', 'Then the back of the cards', backPrompt());
+    if (id === 'build') swap('buildBox', 'Your build prompt', buildPrompt(), 'Copy build prompt');
+    if (id === 'list') { var p = document.getElementById('countPill'); if (p) p.textContent = named().length + ' of ' + (S.deck.count || '?') + ' cards'; }
+    save();
+  }
+  function dotsRefresh(fn) { var d = stage.querySelectorAll('.dots span'); named().forEach(function (c, n) { if (d[n]) d[n].classList.toggle('full', !!fn(c)); }); }
+  function go(i) { S.step = Math.max(0, Math.min(STEPS.length - 1, i)); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function moveCard(dir) {
+    var idx = S.cards.map(function (c, i) { return v(c.name) ? i : -1; }).filter(function (i) { return i > -1; });
+    var p = idx.indexOf(S.current); if (p < 0) p = 0;
+    S.current = idx[(p + dir + idx.length) % idx.length]; render();
+  }
+  function sparkle(el) {
+    var r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    for (var i = 0; i < 10; i++) {
+      var s = document.createElement('span'); s.className = 'spark'; s.textContent = i % 2 ? '✦' : '✧';
+      var a = Math.PI * 2 * i / 10; s.style.left = cx + 'px'; s.style.top = cy + 'px';
+      s.style.setProperty('--dx', Math.cos(a) * 60 + 'px'); s.style.setProperty('--dy', Math.sin(a) * 45 + 'px');
+      document.body.appendChild(s); setTimeout(function (n) { return function () { n.remove(); }; }(s), 950);
+    }
+  }
+  function copy(btn) {
+    var box = btn.closest('.prompt'), pre = box.querySelector('pre'), tag = box.querySelector('.copied');
+    function flag(m) { tag.textContent = m; setTimeout(function () { tag.textContent = ''; }, 2400); }
+    function fb() { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); flag('Selected. Press Ctrl+C or Cmd+C'); }
+    try { navigator.clipboard.writeText(pre.textContent).then(function () { flag('Copied'); }, fb); } catch (e) { fb(); }
+  }
+
+  stage.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset.bind) {
+      var b = t.dataset.bind, val = t.type === 'number' ? (parseInt(t.value, 10) || '') : t.value;
+      if (b.indexOf('card.') === 0) cur()[b.slice(5)] = val; else setPath(b, val);
+      live();
+    } else if (t.dataset.card) { S.cards[+t.dataset.card][t.dataset.key] = t.value; live(); }
+  });
+  stage.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.name === 'use') { S.deck.use = t.value; save(); }
+    if (t.name === 'path') { S.path = t.value; S.listTab = t.value === 'ai' ? 'ai' : 'paste'; save(); }
+    if (t.id === 'l-ref') { S.look.ref = t.checked; save(); }
+    if (t.id === 'a-name') { S.nameOnArt = t.checked; save(); render(); }
+    if (t.name === 'layoutPick') { S.layoutPick = +t.value; save(); render(); }
+    if (t.id === 'cardPick') { S.current = +t.value; render(); }
+  });
+  stage.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t) return;
+    if (t.hasAttribute('data-copy')) { copy(t); return; }
+    if (t.dataset.tab) { S.listTab = t.dataset.tab; render(); return; }
+    if (t.dataset.tool) { S.artTool = t.dataset.tool; render(); return; }
+    if (t.dataset.imgs) { S.haveImgs = t.dataset.imgs === 'yes'; save(); render(); return; }
+    if (t.dataset.paste) {
+      var src = document.getElementById(t.dataset.paste), cols = { pasteFull: FULL, pasteList: LIST, pasteTexts: TEXTS }[t.dataset.paste];
+      var got = parse(src.value, cols);
+      if (!got.length) { S.flash = '!Nothing to fill yet. Each card needs to be on its own line with | between the parts.'; render(); return; }
+      S.example = false;
+      var m = mergeMsg(merge(got));
+      S.flash = m;
+      if (t.dataset.paste !== 'pasteTexts') S.listTab = 'type';
+      render(); sparkle(t); return;
+    }
+    if (t.id === 'doneBtn') { sparkle(t); if (S.done.indexOf(S.step) < 0) S.done.push(S.step); go(S.step + 1); return; }
+    if (t.id === 'back') { go(S.step - 1); return; }
+    if (t.id === 'addCard') { S.cards.push(blankCard()); render(); var n = document.getElementById('cn' + (S.cards.length - 1)); if (n) n.focus(); return; }
+    if (t.dataset.remove != null) { S.cards.splice(+t.dataset.remove, 1); if (!S.cards.length) S.cards.push(blankCard()); S.current = 0; render(); return; }
+    if (t.id === 'prevCard') { moveCard(-1); return; }
+    if (t.id === 'nextCard') { moveCard(1); return; }
+    if (t.id === 'loadEx') { S = example(); render(); return; }
+    if (t.id === 'clearEx') { S = blank(); render(); return; }
+    if (t.id === 'resetAsk') { document.getElementById('resetWrap').innerHTML = 'Clear every answer and start over? <button class="btn sm" type="button" id="resetYes">Clear it</button> <button class="btn sm ghost" type="button" id="resetNo">Keep my deck</button>'; return; }
+    if (t.id === 'resetYes') { S = blank(); render(); window.scrollTo({ top: 0 }); return; }
+    if (t.id === 'resetNo') { render(); return; }
+  });
+  document.getElementById('steps').addEventListener('click', function (e) { var t = e.target.closest('button[data-go]'); if (t && !t.disabled) go(+t.dataset.go); });
+
+  var sc = document.getElementById('scene');
+  for (var i = 0; i < 16; i++) {
+    var tw = document.createElement('span'); tw.className = 'twinkle'; tw.textContent = i % 3 ? '✧' : '✦';
+    tw.style.left = (Math.random() * 100) + '%'; tw.style.top = (Math.random() * 100) + '%';
+    tw.style.animationDelay = (-Math.random() * 5) + 's'; tw.style.animationDuration = (4 + Math.random() * 4) + 's';
+    tw.style.fontSize = (9 + Math.random() * 10) + 'px';
+    sc.appendChild(tw);
+  }
+  render();
+})();
+</script>
+
+</html>
